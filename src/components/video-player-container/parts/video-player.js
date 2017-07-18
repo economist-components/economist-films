@@ -97,8 +97,26 @@ class VideoPlayer extends React.Component {
     } = this.props;
     (this: any).player = videojs((this: any).videoNode, { ...videoJsOptions(videoUrl) });
     (this: any).player.muted(!isVideoExpanded);
-    (this: any).videoSaver = VideoPlayer.createVideoSaver((this: any).player, videoID);
+    if (isVideoExpanded) {
+      (this: any).videoSaver = VideoPlayer.createVideoSaver((this: any).player, videoID);
+    }
     document.addEventListener('keydown', this.handleKeyPress);
+  }
+  componentWillReceiveProps(nextProps: VideoPlayerPropsType) {
+    const { videoID } = this.props;
+    const lagTime = 5;
+    const lastTimeProgress: number = getProgressTimeById(videoID);
+    const videoLengthSecs = Math.round((this: any).player.duration());
+    const timeProgressSecs = Math.round((videoLengthSecs * (lastTimeProgress / 100)) - lagTime);
+    if (nextProps.isVideoExpanded) {
+      (this: any).videoSaver = VideoPlayer.createVideoSaver((this: any).player, videoID);
+      if (lastTimeProgress > 0) {
+        (this: any).player.currentTime(timeProgressSecs);
+      }
+      if (lastTimeProgress === 0) {
+        (this: any).player.currentTime(0);
+      }
+    }
   }
   componentDidUpdate() {
     if ((this: any).player) {
@@ -226,12 +244,12 @@ class VideoPlayer extends React.Component {
     }
   }
   handleVideoLoad() {
-    const { videoID: id } = this.props;
-    const lagTime = 5;
-    const lastTimeProgress: number = getProgressTimeById(id);
-    const videoLengthSecs = Math.round((this: any).player.duration());
-    const timeProgressSecs = Math.round((videoLengthSecs * (lastTimeProgress / 100)) - lagTime);
-    (this: any).player.currentTime(timeProgressSecs);
+    // const { videoID: id } = this.props;
+    // const lagTime = 5;
+    // const lastTimeProgress: number = getProgressTimeById(id);
+    // const videoLengthSecs = Math.round((this: any).player.duration());
+    // const timeProgressSecs = Math.round((videoLengthSecs * (lastTimeProgress / 100)) - lagTime);
+    (this: any).player.currentTime(0);
   }
   handleEndReached() {
     this.setState({
